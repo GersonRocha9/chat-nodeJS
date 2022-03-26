@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat - socket.io</title>
+
+    <!-- Importando o jQuery como CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <!-- Importando o socket.io -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
+
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Div para exibir a logo do NodeJS -->
+    <div class="logo-container">
+      <img src="./assets/logo.png" class="logo" alt="Node Js Logo" />
+    </div>
+
+    <!-- Criaçao do formulário do chat -->
+    <form id="chat">
+      <input type="text" name="username" placeholder="Digite seu usuário" />
+      <div class="messages"></div>
+      <input type="text" name="message" placeholder="Digite sua mensagem" />
+      <button type="submit">Enviar Mensagem</button>
+    </form>
+
+    <script type="text/javascript">
+      // Criando o socket.io para conexão com o servidor
+      var socket = io("http://localhost:3000");
+
+      // Funçao para renderizar a mensagem no chat direto na div
+      function renderMessage(message) {
+        var html = '<div class="message"><strong>' + message.author + "</strong>: " + message.message + "</div>";
+        $(".messages").append(html);
+      }
+
+      // Função para recuperar as mensagens ao atualizar a página
+      socket.on("previousMessages", function (messages) {
+        for (message of messages) {
+          renderMessage(message);
+        }
+      });
+
+      // Função para receber as mensagens
+      socket.on("receivedMessage", function (message) {
+        renderMessage(message);
+      });
+
+      // Função para enviar as mensagens
+      $("#chat").submit(function (e) {
+        e.preventDefault();
+
+        // Recuperando o valor do input do usuário
+        var author = $("input[name=username]").val();
+        var message = $("input[name=message]").val();
+
+        // Verificando se todos os campos estão preenchidos
+        if (author.length > 0 && message.length > 0) {
+          var messageObject = {
+            author: author,
+            message: message,
+          };
+
+          // Enviando a mensagem para o servidor
+          renderMessage(messageObject);
+          socket.emit("sendMessage", messageObject);
+        } else {
+          alert("Preencha todos os campos!");
+        }
+      });
+    </script>
+  </body>
+</html>
